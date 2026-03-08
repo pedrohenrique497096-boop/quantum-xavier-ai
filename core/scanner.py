@@ -1,23 +1,37 @@
 from data.market import get_data
-from core.engines import breakout_engine, reversal_engine, continuation_engine
+from core.engines import (
+    breakout_engine,
+    reversal_engine,
+    continuation_engine,
+    volume_engine,
+)
 from core.signals import build_signal
+from config.settings import TIMEFRAME, HISTORY, MIN_CONFIDENCE
+
 
 def scan(symbol):
+    df = get_data(symbol, interval=TIMEFRAME, bars=HISTORY)
 
-    df = get_data(symbol)
-
-    if df is None:
+    if df is None or len(df) < 10:
         return None
 
-    breakout = breakout_engine(df)
+    try:
+        breakout = breakout_engine(df)
+        rev_buy, rev_sell = reversal_engine(df)
+        cont_buy, cont_sell = continuation_engine(df)
+        vol_buy, vol_sell = volume_engine(df)
 
-    rev_buy, rev_sell = reversal_engine(df)
+        buy_score = breakout + rev_buy + cont_buy + vol_buy
+        sell_score = rev_sell + cont_sell + vol_sell
 
-    cont_buy, cont_sell = continuation_engine(df)
+        signal = build_signal(symbol, df, buy_score, sell_score)
+        if signal is None:
+            return None
 
-    buy_score = breakout + rev_buy + cont_buy
-    sell_score = breakout + rev_sell + cont_sell
+        if signal["confidence"] < MIN_CONFIDENCE:
+            return None
 
-    signal = build_signal(symbol, df, buy_score, sell_score)
+        return signal
 
-    return signal
+    except Exception:
+        return None
