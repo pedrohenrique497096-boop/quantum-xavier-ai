@@ -28,19 +28,17 @@ def evaluate_open_trades():
     if open_df is None or open_df.empty:
         return
 
-    for index, trade in open_df.iterrows():
-        # lógica simples de fechamento
+    for _, trade in open_df.iterrows():
         close_trade(trade["id"])
 
 
 def scan():
-
-    if not market_is_open():
-        return {"status": "market closed"}
-
     results = []
 
     for symbol in WATCHLIST:
+
+        if not market_is_open(symbol):
+            continue
 
         macro_data = get_data(symbol, TIMEFRAME_MACRO, HISTORY_MACRO)
         trend_data = get_data(symbol, TIMEFRAME_TREND, HISTORY_TREND)
