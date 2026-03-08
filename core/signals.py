@@ -1,37 +1,45 @@
+import math
 from config.settings import RISK_REWARD
 
 
-def build_signal(symbol, df, buy_score, sell_score):
+def clean_score(x):
+    try:
+        x = float(x)
+        if math.isnan(x) or math.isinf(x):
+            return 0.0
+        return x
+    except Exception:
+        return 0.0
+
+
+def build_signal(symbol, df, buy_score, sell_score, explanation=""):
     if df is None or len(df) < 1:
         return None
 
     last = df.iloc[-1]
 
-    high = float(last["High"])
-    low = float(last["Low"])
-    close = float(last["Close"])
+    high_ = float(last["High"])
+    low_ = float(last["Low"])
+    close_ = float(last["Close"])
 
-    if high <= low:
+    buy_score = clean_score(buy_score)
+    sell_score = clean_score(sell_score)
+
+    if high_ <= low_:
         return None
 
-    if buy_score > sell_score:
-        entry = high
-        stop = low
-        target = entry + (entry - stop) * RISK_REWARD
+    if buy_score >= sell_score:
         direction = "BUY"
-        confidence = float(buy_score)
+        entry = high_
+        stop = low_
+        target = entry + (entry - stop) * RISK_REWARD
+        confidence = buy_score
     else:
-        entry = low
-        stop = high
-        target = entry - (stop - entry) * RISK_REWARD
         direction = "SELL"
-        confidence = float(sell_score)
-
-    reason = (
-        f"Sinal {direction} | "
-        f"confiança={confidence:.2f} | "
-        f"preço={close:.5f}"
-    )
+        entry = low_
+        stop = high_
+        target = entry - (stop - entry) * RISK_REWARD
+        confidence = sell_score
 
     return {
         "symbol": symbol,
@@ -39,7 +47,8 @@ def build_signal(symbol, df, buy_score, sell_score):
         "entry": float(entry),
         "stop": float(stop),
         "target": float(target),
+        "close": float(close_),
         "confidence": float(confidence),
-        "reason": reason,
-        "status": "OPEN"
+        "reason": explanation,
+        "status": "OPEN",
     }
