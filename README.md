@@ -1,14 +1,17 @@
-# Quantum Xavier AI
+# Quantum Xavier Market AI
 
-Scanner de mercado com Streamlit para Forex, Ouro e Crypto.
+Scanner automático de mercado com Streamlit.
 
 ## Recursos
-- Scanner automático
-- Ranking de sinais
-- Histórico salvo em SQLite
-- Análise de BTC, Ouro e pares Forex
+- Sinais de compra e venda
+- Entrada, stop e alvo
+- Gráfico do ativo
+- Histórico de sinais abertos
+- Histórico de sinais encerrados
+- Win rate
+- Forex, Ouro e Crypto
 
-## Rodar local
+## Rodar localmente
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
