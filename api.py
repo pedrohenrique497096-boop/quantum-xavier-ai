@@ -1,12 +1,29 @@
 from fastapi import FastAPI
 from core.scanner import scan
 
-app = FastAPI()
+app = FastAPI(
+    title="Quantum Xavier AI",
+    description="AI institucional de análise de mercado",
+    version="1.0"
+)
 
 @app.get("/")
 def home():
-    return {"Quantum Xavier AI": "online"}
+    return {
+        "AI": "Quantum Xavier",
+        "status": "online",
+        "version": "v12",
+        "message": "Sistema funcionando"
+    }
 
-@app.get("/signals")
-def signals():
-    return scan().to_dict(orient="records")
+@app.get("/scan")
+def run_scan():
+    try:
+        scan()
+        return {
+            "scan": "executado com sucesso"
+        }
+    except Exception as e:
+        return {
+            "erro": str(e)
+        }
