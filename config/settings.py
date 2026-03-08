@@ -1,1 +1,12 @@
+WATCHLIST = [
+    "EURUSD=X",
+    "GBPUSD=X",
+    "USDJPY=X",
+    "BTC-USD",
+    "GC=F"
+]
 
+TIMEFRAME = "5m"
+HISTORY = 300
+MIN_CONFIDENCE = 70
+RISK_REWARD = 2
