@@ -16,13 +16,11 @@ from data.market import get_data
 from core.market_hours import market_is_open
 from core.engine import macro_bias, trend_bias
 from ai.model import adaptive_confidence_boost
-from database.trades import (
-    load_open_trades,
-    close_trade,
-)
+from database.trades import load_open_trades, close_trade
 
 
 def evaluate_open_trades():
+
     open_df = load_open_trades()
 
     if open_df is None or open_df.empty:
@@ -33,6 +31,7 @@ def evaluate_open_trades():
 
 
 def scan():
+
     results = []
 
     for symbol in WATCHLIST:
@@ -50,9 +49,13 @@ def scan():
         macro = macro_bias(macro_data)
         trend = trend_bias(trend_data)
 
-        confidence = adaptive_confidence_boost(macro, trend)
+        confidence = adaptive_confidence_boost(
+            macro=macro,
+            trend=trend
+        )
 
         if confidence >= MIN_CONFIDENCE:
+
             results.append({
                 "symbol": symbol,
                 "name": SYMBOL_NAMES.get(symbol, symbol),
