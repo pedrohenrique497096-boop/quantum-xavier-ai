@@ -1,18 +1,41 @@
-from sklearn.ensemble import RandomForestClassifier
+import os
+import sqlite3
+from config.settings import DB_PATH
 
-class MarketAI:
 
-    def __init__(self):
+def adaptive_confidence_boost() -> float:
+    if not os.path.exists(DB_PATH):
+        return 0.0
 
-        self.model = RandomForestClassifier(
-            n_estimators=600,
-            max_depth=14
-        )
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
 
-    def train(self,X,y):
+        cur.execute("SELECT COUNT(*) FROM closed_trades")
+        total = cur.fetchone()[0]
 
-        self.model.fit(X,y)
+        if total == 0:
+            conn.close()
+            return 0.0
 
-    def predict(self,X):
+        cur.execute("SELECT COUNT(*) FROM closed_trades WHERE result='TP'")
+        wins = cur.fetchone()[0]
+        conn.close()
 
-        return self.model.predict_proba(X)
+        winrate = wins / total
+
+        # boost leve, para não distorcer demais
+        return (winrate - 0.5) * 20.0
+
+    except Exception:
+        return 0.0
+
+
+def explain_signal(signal: dict) -> str:
+    return (
+        f"Análise da IA\n\n"
+        f"Ativo: {signal['display_symbol']}\n"
+        f"Direção: {signal['direction']}\n"
+        f"Confiança: {signal['confidence']:.2f}\n\n"
+        f"Motivos:\n{signal['reason']}"
+    )
