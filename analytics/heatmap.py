@@ -1,10 +1,11 @@
 import pandas as pd
 
-def heatmap(signals):
 
-    df = pd.DataFrame(signals)
+def market_heatmap(signals_df: pd.DataFrame):
+    if signals_df is None or signals_df.empty:
+        return {"buy": 0, "sell": 0}
 
-    if df.empty:
-        return df
+    buy = int((signals_df["direction"] == "BUY").sum())
+    sell = int((signals_df["direction"] == "SELL").sum())
 
-    return df[["symbol","direction"]]
+    return {"buy": buy, "sell": sell}
