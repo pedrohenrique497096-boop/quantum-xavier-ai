@@ -5,13 +5,23 @@ def breakout_engine(df):
     last = df.iloc[-1]
     prev = df.iloc[-2]
 
+    close = last["Close"]
+    open_ = last["Open"]
+    high = last["High"]
+    low = last["Low"]
+
+    prev_high = prev["High"]
+
     score = 0
 
-    if last.Close > prev.High:
+    if close > prev_high:
         score += 40
 
-    body = abs(last.Close - last.Open)
-    rng = last.High - last.Low
+    body = abs(close - open_)
+    rng = high - low
+
+    if rng == 0:
+        return score
 
     strength = body / rng
 
@@ -24,10 +34,18 @@ def reversal_engine(df):
 
     last = df.iloc[-1]
 
-    upper = last.High - max(last.Open, last.Close)
-    lower = min(last.Open, last.Close) - last.Low
+    high = last["High"]
+    low = last["Low"]
+    close = last["Close"]
+    open_ = last["Open"]
 
-    rng = last.High - last.Low
+    upper = high - max(open_, close)
+    lower = min(open_, close) - low
+
+    rng = high - low
+
+    if rng == 0:
+        return 0, 0
 
     score_buy = lower / rng * 100
     score_sell = upper / rng * 100
@@ -37,7 +55,10 @@ def reversal_engine(df):
 
 def continuation_engine(df):
 
-    closes = df.Close.values
+    closes = df["Close"].values
+
+    if len(closes) < 5:
+        return 0, 0
 
     momentum = np.mean(np.diff(closes[-5:]))
 
