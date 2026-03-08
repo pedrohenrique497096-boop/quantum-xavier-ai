@@ -1,23 +1,18 @@
-
 import streamlit as st
-import requests
 import pandas as pd
 import plotly.graph_objects as go
 
-API_URL = "https://quantum-xavier-ai.onrender.com/scan"
+from core.scanner import scan
 
-st.set_page_config(
-    page_title="Quantum Xavier AI",
-    layout="wide"
-)
+st.set_page_config(page_title="Quantum Xavier AI", layout="wide")
 
-st.title("Quantum Xavier AI Terminal")
+st.title("Terminal de IA Quantum Xavier")
+
+st.write("Sistema de análise institucional do mercado")
 
 if st.button("Rodar análise do mercado"):
 
-    response = requests.get(API_URL)
-
-    data = response.json()
+    data = scan()
 
     if isinstance(data, list) and len(data) > 0:
 
@@ -33,7 +28,7 @@ if st.button("Rodar análise do mercado"):
             go.Bar(
                 x=df["symbol"],
                 y=df["confidence"],
-                name="Confiança"
+                name="Confiança da IA"
             )
         )
 
@@ -41,4 +36,4 @@ if st.button("Rodar análise do mercado"):
 
     else:
 
-        st.warning("Nenhum sinal encontrado")
+        st.warning("Nenhum sinal encontrado no momento")
