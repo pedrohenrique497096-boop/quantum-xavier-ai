@@ -1,47 +1,49 @@
-from config.settings import TIMEFRAME, HISTORY, MIN_CONFIDENCE
 from data.market import get_data
-from core.engines import (
-    breakout_engine,
-    reversal_engine,
-    continuation_engine,
-    volume_engine,
-    explain_signal,
+from core.engine import macro_bias, trend_bias
+from core.liquidity import liquidity_zones
+
+from config.settings import (
+    TIMEFRAME_MACRO,
+    TIMEFRAME_TREND,
+    TIMEFRAME_ENTRY,
+    HISTORY
 )
-from core.signals import build_signal
 
+def scan(symbol):
 
-def scan(symbol: str):
-    df = get_data(symbol, interval=TIMEFRAME, bars=HISTORY)
+    d1 = get_data(symbol,TIMEFRAME_MACRO,HISTORY)
+    h1 = get_data(symbol,TIMEFRAME_TREND,HISTORY)
+    m5 = get_data(symbol,TIMEFRAME_ENTRY,HISTORY)
 
-    if df is None or len(df) < 10:
-        return None, None
+    if d1 is None or h1 is None or m5 is None:
+        return None
 
-    try:
-        breakout_buy, breakout_sell, breakout_reason = breakout_engine(df)
-        rev_buy, rev_sell, rev_reason = reversal_engine(df)
-        cont_buy, cont_sell, cont_reason = continuation_engine(df)
-        vol_buy, vol_sell, vol_reason = volume_engine(df)
+    macro = macro_bias(d1)
+    trend = trend_bias(h1)
 
-        buy_score = breakout_buy + rev_buy + cont_buy + vol_buy
-        sell_score = breakout_sell + rev_sell + cont_sell + vol_sell
+    if macro != trend:
+        return None
 
-        direction = "BUY" if buy_score >= sell_score else "SELL"
-        confidence = buy_score if direction == "BUY" else sell_score
+    high, low = liquidity_zones(m5)
 
-        explanation = explain_signal(
-            direction=direction,
-            confidence=confidence,
-            reasons=[breakout_reason, rev_reason, cont_reason, vol_reason]
-        )
+    last = m5.iloc[-1]["Close"]
 
-        signal = build_signal(symbol, df, buy_score, sell_score, explanation)
-        if signal is None:
-            return None, df
+    if macro=="bull" and last>high:
 
-        if signal["confidence"] < MIN_CONFIDENCE:
-            return None, df
+        return {
+            "symbol":symbol,
+            "direction":"BUY",
+            "entry":high,
+            "stop":low
+        }
 
-        return signal, df
+    if macro=="bear" and last<low:
 
-    except Exception:
-        return None, df
+        return {
+            "symbol":symbol,
+            "direction":"SELL",
+            "entry":low,
+            "stop":high
+        }
+
+    return None
