@@ -1,18 +1,13 @@
-def backtest(trades):
+import random
 
-    wins=0
-    losses=0
 
-    for t in trades:
+def monte_carlo_equity(winrate: float = 0.55, trades: int = 50, start: float = 10000.0):
+    equity = start
 
-        if t["result"]=="win":
-            wins+=1
+    for _ in range(trades):
+        if random.random() < winrate:
+            equity *= 1.02
         else:
-            losses+=1
+            equity *= 0.99
 
-    total=wins+losses
-
-    if total==0:
-        return 0
-
-    return wins/total
+    return round(equity, 2)
