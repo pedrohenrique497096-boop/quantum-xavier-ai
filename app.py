@@ -1,51 +1,71 @@
 import streamlit as st
 import pandas as pd
 
+from config.settings import APP_TITLE, WATCHLIST, MIN_CONFIDENCE
 from core.scanner import scan
-from config.settings import WATCHLIST
-from core.database import setup, save_signal
+from core.database import setup, save_signal, load_signals
 
 setup()
 
-st.set_page_config(page_title="Quantum Xavier AI", layout="wide")
+st.set_page_config(
+    page_title=APP_TITLE,
+    layout="wide"
+)
 
-st.title("Quantum Xavier Market AI")
+st.title(APP_TITLE)
+st.caption("Scanner de mercado com análise automática para Forex, Ouro e Crypto.")
+
+if "saved_signatures" not in st.session_state:
+    st.session_state.saved_signatures = set()
+
+col1, col2, col3 = st.columns(3)
+col1.metric("Ativos monitorados", len(WATCHLIST))
+col2.metric("Confiança mínima", f"{MIN_CONFIDENCE}")
+col3.metric("Status", "Online")
 
 signals = []
 
-for symbol in WATCHLIST:
+with st.spinner("Analisando mercado..."):
+    for symbol in WATCHLIST:
+        signal = scan(symbol)
+        if signal:
+            signature = (
+                signal["symbol"],
+                signal["direction"],
+                round(signal["entry"], 8),
+                round(signal["stop"], 8),
+                round(signal["target"], 8),
+            )
 
-    signal = scan(symbol)
+            signals.append(signal)
 
-    if signal:
+            if signature not in st.session_state.saved_signatures:
+                save_signal(signal)
+                st.session_state.saved_signatures.add(signature)
 
-        signals.append(signal)
+if signals:
+    df = pd.DataFrame(signals).sort_values("confidence", ascending=False).reset_index(drop=True)
 
-        if signal["confidence"] > 70:
-            save_signal(signal)
+    st.subheader("Melhores sinais da rodada")
+    st.dataframe(
+        df[["symbol", "direction", "entry", "stop", "target", "confidence", "reason"]],
+        use_container_width=True
+    )
 
-df = pd.DataFrame(signals)
+    best = df.iloc[0]
 
-st.subheader("Melhores sinais")
+    st.success(
+        f"Melhor sinal: {best['symbol']} | {best['direction']} | "
+        f"Entrada: {best['entry']:.5f} | Stop: {best['stop']:.5f} | "
+        f"Alvo: {best['target']:.5f} | Confiança: {best['confidence']:.2f}"
+    )
+else:
+    st.warning("Nenhum sinal forte encontrado nesta rodada.")
 
-st.dataframe(df.sort_values("confidence", ascending=False))
+st.subheader("Histórico salvo")
+history = load_signals(limit=50)
 
-if len(df):
-
-    best = df.sort_values("confidence", ascending=False).iloc[0]
-
-    st.success(f"""
-Melhor sinal agora
-
-Ativo: {best.symbol}
-
-Direção: {best.direction}
-
-Entrada: {best.entry}
-
-Stop: {best.stop}
-
-Alvo: {best.target}
-
-Confiança: {best.confidence}
-""")
+if history is not None and not history.empty:
+    st.dataframe(history, use_container_width=True)
+else:
+    st.info("Ainda não há histórico salvo.")
