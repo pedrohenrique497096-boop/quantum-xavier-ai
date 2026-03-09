@@ -18,8 +18,7 @@ def root():
 
 @app.get("/scan")
 def run_scan():
-    data = scan()
-    return data
+    return scan()
 
 @app.get("/health")
 def health():
