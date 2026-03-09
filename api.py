@@ -1,10 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(
-    title="Quantum Xavier API",
-    version="1.0"
-)
+app = FastAPI(title="Quantum Xavier API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,13 +13,10 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {
-        "status": "online",
-        "app": "Quantum Xavier API"
-    }
+    return {"status": "online", "app": "Quantum Xavier API"}
 
 @app.get("/scan")
-def scan_market():
+def scan():
     return [
         {
             "symbol": "BTC/USD",
