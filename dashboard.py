@@ -8,49 +8,38 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-
-body{
-background-color:#0e1117;
+.big-title {
+    font-size: 42px;
+    font-weight: 700;
 }
-
-.big-title{
-font-size:48px;
-font-weight:700;
-color:white;
+.subtitle {
+    font-size: 18px;
+    color: #9aa0a6;
 }
-
-.subtitle{
-font-size:18px;
-color:#9aa0a6;
+.box {
+    background: #111827;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #1f2937;
 }
-
-.main-card{
-background:#111827;
-padding:30px;
-border-radius:15px;
-border:1px solid #1f2937;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
-
-col1, col2 = st.columns([1,3])
-
-with col1:
-    st.image("assets/logo.png", width=180)
-
-with col2:
-    st.markdown('<div class="big-title">Quantum Xavier</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Sistema de análise institucional do mercado</div>', unsafe_allow_html=True)
+st.markdown('<div class="big-title">Quantum Xavier</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Sistema de análise institucional do mercado</div>', unsafe_allow_html=True)
 
 st.divider()
 
-st.markdown("### 🚀 Plataforma de Inteligência de Mercado")
+col1, col2, col3 = st.columns(3)
 
-st.info("""
-A Quantum Xavier analisa o mercado utilizando múltiplos timeframes e inteligência adaptativa.
-Use o menu lateral ☰ para navegar entre as funcionalidades.
-""")
+with col1:
+    st.markdown('<div class="box">📊 Scanner de Mercado</div>', unsafe_allow_html=True)
 
-st.success("Sistema online e pronto para análise.")
+with col2:
+    st.markdown('<div class="box">🤖 Sinais da IA</div>', unsafe_allow_html=True)
+
+with col3:
+    st.markdown('<div class="box">📈 Estatísticas</div>', unsafe_allow_html=True)
+
+st.write("")
+st.success("Interface inicial carregada com sucesso.")
