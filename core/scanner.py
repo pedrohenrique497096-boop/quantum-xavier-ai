@@ -1,63 +1,61 @@
-import pandas as pd
-
+from data.market import get_data
+from core.market_hours import market_is_open
+from core.engine import macro_bias, trend_bias
 from config.settings import (
     WATCHLIST,
-    SYMBOL_NAMES,
     TIMEFRAME_MACRO,
     TIMEFRAME_TREND,
     TIMEFRAME_ENTRY,
     HISTORY_MACRO,
     HISTORY_TREND,
     HISTORY_ENTRY,
-    MIN_CONFIDENCE,
 )
-
-from data.market import get_data
-from core.market_hours import market_is_open
-from core.engine import macro_bias, trend_bias
-from ai.model import adaptive_confidence_boost
-from database.trades import load_open_trades, close_trade
-
-
-def evaluate_open_trades():
-    open_df = load_open_trades()
-
-    if open_df is None or open_df.empty:
-        return
-
-    for _, trade in open_df.iterrows():
-        close_trade(trade["id"])
-
 
 def scan():
     results = []
 
     for symbol in WATCHLIST:
+        try:
+            if not market_is_open(symbol):
+                continue
 
-        if not market_is_open(symbol):
-            continue
+            macro_data = get_data(symbol, TIMEFRAME_MACRO, HISTORY_MACRO)
+            trend_data = get_data(symbol, TIMEFRAME_TREND, HISTORY_TREND)
+            entry_data = get_data(symbol, TIMEFRAME_ENTRY, HISTORY_ENTRY)
 
-        macro_data = get_data(symbol, TIMEFRAME_MACRO, HISTORY_MACRO)
-        trend_data = get_data(symbol, TIMEFRAME_TREND, HISTORY_TREND)
-        entry_data = get_data(symbol, TIMEFRAME_ENTRY, HISTORY_ENTRY)
+            if macro_data is None or trend_data is None or entry_data is None:
+                continue
 
-        if macro_data is None or trend_data is None or entry_data is None:
-            continue
+            macro = macro_bias(macro_data)
+            trend = trend_bias(trend_data)
 
-        macro = macro_bias(macro_data)
-        trend = trend_bias(trend_data)
+            side = "BUY" if macro == "bullish" and trend == "bullish" else "SELL"
 
-        confidence = adaptive_confidence_boost()
+            confidence = 80 if macro == trend else 65
 
-        if confidence >= MIN_CONFIDENCE:
+            last_price = None
+            if "Close" in entry_data.columns and len(entry_data) > 0:
+                last_price = float(entry_data["Close"].iloc[-1])
+
+            entry = last_price if last_price is not None else 0
+
+            if side == "BUY":
+                stop_loss = round(entry * 0.98, 2)
+                take_profit = round(entry * 1.04, 2)
+            else:
+                stop_loss = round(entry * 1.02, 2)
+                take_profit = round(entry * 0.96, 2)
+
             results.append({
                 "symbol": symbol,
-                "name": SYMBOL_NAMES.get(symbol, symbol),
-                "macro": macro,
-                "trend": trend,
-                "confidence": confidence
+                "side": side,
+                "confidence": confidence,
+                "entry": entry,
+                "stop_loss": stop_loss,
+                "take_profit": take_profit
             })
 
-    evaluate_open_trades()
+        except Exception:
+            continue
 
     return results
