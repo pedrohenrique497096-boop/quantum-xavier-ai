@@ -1,5 +1,6 @@
 import streamlit as st
 
-st.title("Sinais da IA")
+st.set_page_config(page_title="Sinais", layout="wide")
 
-st.info("Aqui aparecerão os sinais gerados pela Quantum Xavier")
+st.title("🤖 Sinais da IA")
+st.write("Aqui vão aparecer os sinais gerados pela Quantum Xavier.")
