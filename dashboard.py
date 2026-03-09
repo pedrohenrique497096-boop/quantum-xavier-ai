@@ -1,8 +1,7 @@
 import streamlit as st
-from core.scanner import scan
 
 st.set_page_config(
-    page_title="Quantum Xavier AI",
+    page_title="Quantum Xavier",
     page_icon="🤖",
     layout="wide"
 )
@@ -10,12 +9,12 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-body {
+body{
 background-color:#0e1117;
 }
 
 .big-title{
-font-size:42px;
+font-size:48px;
 font-weight:700;
 color:white;
 }
@@ -35,10 +34,11 @@ border:1px solid #1f2937;
 </style>
 """, unsafe_allow_html=True)
 
+
 col1, col2 = st.columns([1,3])
 
 with col1:
-    st.image("assets/logo.png", width=150)
+    st.image("assets/logo.png", width=180)
 
 with col2:
     st.markdown('<div class="big-title">Quantum Xavier</div>', unsafe_allow_html=True)
@@ -46,15 +46,11 @@ with col2:
 
 st.divider()
 
-if st.button("🚀 Rodar análise do mercado"):
+st.markdown("### 🚀 Plataforma de Inteligência de Mercado")
 
-    results = scan()
+st.info("""
+A Quantum Xavier analisa o mercado utilizando múltiplos timeframes e inteligência adaptativa.
+Use o menu lateral ☰ para navegar entre as funcionalidades.
+""")
 
-    if len(results) == 0:
-        st.warning("Nenhum sinal encontrado no momento")
-
-    else:
-
-        st.success("Sinais encontrados")
-
-        st.dataframe(results)
+st.success("Sistema online e pronto para análise.")
