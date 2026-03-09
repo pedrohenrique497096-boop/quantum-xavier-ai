@@ -1,7 +1,6 @@
 import streamlit as st
 
-st.title("Estatísticas")
+st.set_page_config(page_title="Estatísticas", layout="wide")
 
-st.metric("Wins", 10)
-st.metric("Loss", 3)
-st.metric("Assertividade", "76%")
+st.title("📈 Estatísticas")
+st.write("Aqui vão aparecer winrate, trades e desempenho da IA.")
