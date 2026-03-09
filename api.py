@@ -1,29 +1,47 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from core.scanner import scan
 
 app = FastAPI(
-    title="Quantum Xavier AI",
-    description="AI institucional de análise de mercado",
-    version="1.0"
+    title="Quantum Xavier API",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
-def home():
+def root():
     return {
-        "AI": "Quantum Xavier",
         "status": "online",
-        "version": "v12",
-        "message": "Sistema funcionando"
+        "app": "Quantum Xavier API"
+    }
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
     }
 
 @app.get("/scan")
-def run_scan():
+def get_scan():
     try:
-        scan()
-        return {
-            "scan": "executado com sucesso"
-        }
+        data = scan()
+
+        if data is None:
+            return []
+
+        if isinstance(data, list):
+            return data
+
+        return []
     except Exception as e:
         return {
-            "erro": str(e)
+            "status": "error",
+            "message": str(e)
         }
