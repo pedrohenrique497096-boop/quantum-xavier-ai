@@ -1,25 +1,6 @@
 import streamlit as st
-from core.scanner import scan
-import pandas as pd
 
-st.title("Scanner de Mercado")
+st.set_page_config(page_title="Scanner", layout="wide")
 
-if st.button("Atualizar Scanner"):
-
-    data = scan()
-
-    if len(data) == 0:
-        st.warning("Nenhum ativo com sinal")
-
-    else:
-
-        df = pd.DataFrame(data)
-
-        st.dataframe(df)
-
-        for _, row in df.iterrows():
-
-            st.metric(
-                label=row["symbol"],
-                value=f"{row['confidence']}% confiança"
-            )
+st.title("📊 Scanner de Mercado")
+st.write("Aqui vão aparecer os ativos analisados pela IA.")
