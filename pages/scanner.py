@@ -4,7 +4,6 @@ from core.scanner import scan
 st.set_page_config(page_title="Scanner", layout="wide")
 
 st.title("📊 Scanner de Mercado")
-
 st.write("Ativos analisados pela Quantum Xavier.")
 
 if st.button("Atualizar Scanner"):
@@ -24,12 +23,32 @@ if st.button("Atualizar Scanner"):
 
             with col:
 
+                symbol = asset.get("symbol", "Ativo")
+                confidence = asset.get("confidence", 0)
+                side = asset.get("side", "N/A")
+
+                color = "#16c784" if side == "BUY" else "#ea3943"
+
                 st.markdown(
                     f"""
-                    ### {asset.get("symbol","Ativo")}
+                    <div style="
+                    background-color:#111827;
+                    padding:20px;
+                    border-radius:12px;
+                    border:1px solid #1f2937;
+                    margin-bottom:20px">
 
-                    **Confiança:** {asset.get("confidence",0)}%
+                    <h3 style="color:white">{symbol}</h3>
 
-                    **Direção:** {asset.get("side","N/A")}
-                    """
+                    <p style="color:#9ca3af">
+                    Direção: <span style="color:{color}">{side}</span>
+                    </p>
+
+                    <p style="color:#9ca3af">
+                    Confiança IA: <b>{confidence}%</b>
+                    </p>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
