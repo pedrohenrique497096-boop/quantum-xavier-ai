@@ -1,37 +1,28 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from database.trades import get_signals
+from data.market import get_price,get_candles
 
-app = FastAPI(title="Quantum Xavier API")
+app=FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/signals")
 
-@app.get("/")
-def root():
-    return {"status": "online", "app": "Quantum Xavier API"}
+def signals():
 
-@app.get("/scan")
-def scan():
-    return [
-        {
-            "symbol": "BTC/USD",
-            "signal": "BUY",
-            "entry": 67842.50,
-            "stop_loss": 65200.00,
-            "take_profit": 72500.00,
-            "confidence": 92
-        },
-        {
-            "symbol": "ETH/USD",
-            "signal": "BUY",
-            "entry": 3521.75,
-            "stop_loss": 3380.00,
-            "take_profit": 3820.00,
-            "confidence": 87
-        }
-    ]
+    return get_signals()
+
+
+@app.get("/price/{symbol}")
+
+def price(symbol):
+
+    return {
+        "symbol":symbol,
+        "price":get_price(symbol)
+    }
+
+
+@app.get("/chart/{symbol}")
+
+def chart(symbol):
+
+    return get_candles(symbol)
