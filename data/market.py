@@ -1,44 +1,33 @@
 import requests
-from config.settings import BINANCE_API, TWELVEDATA_API, TWELVEDATA_KEY
+
+TWELVEDATA_API_KEY = "COLOQUE_SUA_API_KEY_AQUI"
 
 def get_price(symbol):
 
-    if symbol == "BTCUSD":
+    mapping = {
+        "BTCUSD": "BTC/USD",
+        "XAUUSD": "XAU/USD",
+        "EURUSD": "EUR/USD",
+        "GBPUSD": "GBP/USD",
+        "USDJPY": "USD/JPY",
+        "EURJPY": "EUR/JPY"
+    }
 
-        url=f"{BINANCE_API}/ticker/price?symbol=BTCUSDT"
+    if symbol not in mapping:
+        return {"error": "symbol not supported"}
 
-        r=requests.get(url).json()
+    td_symbol = mapping[symbol]
 
-        return float(r["price"])
+    url = f"https://api.twelvedata.com/price?symbol={td_symbol}&apikey={TWELVEDATA_API_KEY}"
 
-    else:
+    r = requests.get(url)
 
-        url=f"{TWELVEDATA_API}/price?symbol={symbol}&apikey={TWELVEDATA_KEY}"
+    data = r.json()
 
-        r=requests.get(url).json()
+    if "price" not in data:
+        return {"error": data}
 
-        return float(r["price"])
-
-
-def get_candles(symbol):
-
-    if symbol=="BTCUSD":
-
-        url=f"{BINANCE_API}/klines?symbol=BTCUSDT&interval=1m&limit=100"
-
-        data=requests.get(url).json()
-
-        candles=[]
-
-        for c in data:
-
-            candles.append({
-                "time":c[0],
-                "open":float(c[1]),
-                "high":float(c[2]),
-                "low":float(c[3]),
-                "close":float(c[4]),
-                "volume":float(c[5])
-            })
-
-        return candles
+    return {
+        "symbol": symbol,
+        "price": float(data["price"])
+    }
