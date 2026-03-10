@@ -1,49 +1,50 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from data.market import get_price, get_candles
-from core.scanner import scan_market
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+import requests
+from config.settings import TWELVEDATA_API, TWELVEDATA_KEY
 
 
-@app.get("/")
-def root():
-    return {"api": "Quantum Xavier AI", "status": "online"}
+def get_price(symbol):
+
+    url = f"{TWELVEDATA_API}/price"
+
+    params = {
+        "symbol": symbol,
+        "apikey": TWELVEDATA_KEY
+    }
+
+    r = requests.get(url, params=params)
+
+    data = r.json()
+
+    return float(data["price"])
 
 
-@app.get("/price/{symbol}")
-def price(symbol: str):
-    try:
-        return {
-            "symbol": symbol,
-            "price": get_price(symbol),
-        }
-    except Exception as e:
-        return {"error": str(e)}
+def get_candles(symbol):
 
+    url = f"{TWELVEDATA_API}/time_series"
 
-@app.get("/chart/{symbol}")
-def chart(symbol: str):
-    try:
-        return {
-            "symbol": symbol,
-            "candles": get_candles(symbol),
-        }
-    except Exception as e:
-        return {"error": str(e)}
+    params = {
+        "symbol": symbol,
+        "interval": "1min",
+        "outputsize": 100,
+        "apikey": TWELVEDATA_KEY
+    }
 
+    r = requests.get(url, params=params)
 
-@app.get("/signals")
-def signals():
-    try:
-        return scan_market()
-    except Exception as e:
-        return {"error": str(e)}
+    data = r.json()
+
+    candles = []
+
+    if "values" in data:
+
+        for c in data["values"]:
+
+            candles.append({
+                "datetime": c["datetime"],
+                "open": float(c["open"]),
+                "high": float(c["high"]),
+                "low": float(c["low"]),
+                "close": float(c["close"])
+            })
+
+    return candles
