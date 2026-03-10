@@ -1,33 +1,16 @@
-WATCHLIST = [
-    "GC=F",        # XAUUSD proxy
-    "BTC-USD",     # BTCUSD
-    "EURUSD=X",
-    "USDJPY=X",
-    "AUDUSD=X",
-    "EURJPY=X",
+BINANCE_API = "https://api.binance.com/api/v3"
+
+TWELVEDATA_API = "https://api.twelvedata.com"
+
+TWELVEDATA_KEY = "1bbb904ae0994fb7b2d120da18c66602"
+
+ASSETS = [
+"BTCUSD",
+"XAUUSD",
+"EURUSD",
+"GBPUSD",
+"USDJPY",
+"EURJPY"
 ]
 
-SYMBOL_NAMES = {
-    "GC=F": "XAUUSD",
-    "BTC-USD": "BTCUSD",
-    "EURUSD=X": "EURUSD",
-    "USDJPY=X": "USDJPY",
-    "AUDUSD=X": "AUDUSD",
-    "EURJPY=X": "EURJPY",
-}
-
-TIMEFRAME_MACRO = "1d"
-TIMEFRAME_TREND = "1h"
-TIMEFRAME_ENTRY = "5m"
-
-HISTORY_MACRO = 250
-HISTORY_TREND = 300
-HISTORY_ENTRY = 400
-
-RISK_REWARD = 2.0
-MIN_CONFIDENCE = 60.0
-ENTRY_LOOKBACK = 10
-LIQUIDITY_LOOKBACK = 20
-
-APP_TITLE = "Quantum Xavier Market AI"
-DB_PATH = "trades.db"
+SCAN_INTERVAL = 10
