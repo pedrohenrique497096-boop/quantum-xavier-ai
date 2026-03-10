@@ -1,68 +1,44 @@
-import pandas as pd
-import yfinance as yf
+import requests
+from config.settings import BINANCE_API, TWELVEDATA_API, TWELVEDATA_KEY
+
+def get_price(symbol):
+
+    if symbol == "BTCUSD":
+
+        url=f"{BINANCE_API}/ticker/price?symbol=BTCUSDT"
+
+        r=requests.get(url).json()
+
+        return float(r["price"])
+
+    else:
+
+        url=f"{TWELVEDATA_API}/price?symbol={symbol}&apikey={TWELVEDATA_KEY}"
+
+        r=requests.get(url).json()
+
+        return float(r["price"])
 
 
-def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    if df is None or df.empty:
-        return df
+def get_candles(symbol):
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [c[0] if isinstance(c, tuple) else c for c in df.columns]
+    if symbol=="BTCUSD":
 
-    rename_map = {}
-    for c in df.columns:
-        low = str(c).lower()
-        if low == "open":
-            rename_map[c] = "Open"
-        elif low == "high":
-            rename_map[c] = "High"
-        elif low == "low":
-            rename_map[c] = "Low"
-        elif low == "close":
-            rename_map[c] = "Close"
-        elif low == "volume":
-            rename_map[c] = "Volume"
+        url=f"{BINANCE_API}/klines?symbol=BTCUSDT&interval=1m&limit=100"
 
-    df = df.rename(columns=rename_map)
-    return df
+        data=requests.get(url).json()
 
+        candles=[]
 
-def get_data(symbol: str, interval: str = "5m", bars: int = 300):
-    try:
-        period_map = {
-            "1d": "2y",
-            "1h": "90d",
-            "5m": "10d",
-            "1m": "7d",
-        }
+        for c in data:
 
-        df = yf.download(
-            tickers=symbol,
-            interval=interval,
-            period=period_map.get(interval, "60d"),
-            progress=False,
-            auto_adjust=False,
-            threads=False,
-        )
+            candles.append({
+                "time":c[0],
+                "open":float(c[1]),
+                "high":float(c[2]),
+                "low":float(c[3]),
+                "close":float(c[4]),
+                "volume":float(c[5])
+            })
 
-        if df is None or df.empty:
-            return None
-
-        df = _normalize_columns(df)
-
-        needed = ["Open", "High", "Low", "Close"]
-        for col in needed:
-            if col not in df.columns:
-                return None
-
-        if "Volume" not in df.columns:
-            df["Volume"] = 0.0
-
-        df = df.dropna(subset=["Open", "High", "Low", "Close"]).copy()
-        if df.empty:
-            return None
-
-        return df.tail(bars).copy()
-
-    except Exception:
-        return None
+        return candles
