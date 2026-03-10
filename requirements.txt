@@ -1,8 +1,8 @@
-streamlit
-pandas
-numpy
-yfinance
-plotly
-ta
 fastapi
 uvicorn
+requests
+numpy
+pandas
+scikit-learn
+websockets
+pyttsx3
