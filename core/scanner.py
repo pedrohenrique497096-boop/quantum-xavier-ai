@@ -1,21 +1,30 @@
 from config.settings import ASSETS
-from data.market import get_candles,get_price
+from data.market import get_price, get_candles
 from core.engine import analyze_market
+
 
 def scan_market():
 
-    signals=[]
+    signals = []
 
     for asset in ASSETS:
 
-        candles=get_candles(asset)
+        try:
 
-        price=get_price(asset)
+            candles = get_candles(asset)
 
-        signal=analyze_market(asset,candles,price)
+            price = get_price(asset)
 
-        if signal["confidence"]>65:
+            result = analyze_market(
+                symbol=asset,
+                candles=candles,
+                price=price
+            )
 
-            signals.append(signal)
+            if result and result["confidence"] >= 70:
+                signals.append(result)
+
+        except Exception as e:
+            print(f"Erro analisando {asset}: {e}")
 
     return signals
