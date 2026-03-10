@@ -1,32 +1,21 @@
 import time
 from core.scanner import scan_market
 from database.trades import save_signal
+from config.settings import SCAN_INTERVAL
+from ml.learning import train_model
 
-SCAN_INTERVAL = 20
+def start_engine():
 
-
-def start_live_engine():
-
-    print("AI Live Engine Started")
+    print("AI Engine iniciado")
 
     while True:
 
-        try:
+        signals=scan_market()
 
-            signals = scan_market()
+        for s in signals:
 
-            for signal in signals:
+            save_signal(s)
 
-                save_signal(signal)
-
-                print(
-                    f"Signal {signal['symbol']} "
-                    f"{signal['direction']} "
-                    f"{signal['confidence']}%"
-                )
-
-        except Exception as e:
-
-            print("Engine error:", e)
+        train_model()
 
         time.sleep(SCAN_INTERVAL)
