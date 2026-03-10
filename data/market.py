@@ -1,108 +1,49 @@
-import requests
-from config.settings import BINANCE_API, TWELVEDATA_API, TWELVEDATA_KEY
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from data.market import get_price, get_candles
+from core.scanner import scan_market
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-SUPPORTED_ASSETS = {
-    "BTCUSD": "BTC/USD",
-    "XAUUSD": "XAU/USD",
-    "EURUSD": "EUR/USD",
-    "GBPUSD": "GBP/USD",
-    "USDJPY": "USD/JPY",
-    "EURJPY": "EUR/JPY",
-}
+@app.get("/")
+def root():
+    return {"api": "Quantum Xavier AI", "status": "online"}
 
 
-def get_price(symbol: str) -> float:
-    if symbol not in SUPPORTED_ASSETS:
-        raise ValueError(f"Ativo não suportado: {symbol}")
-
-    if symbol == "BTCUSD":
-        url = f"{BINANCE_API}/ticker/price?symbol=BTCUSDT"
-        response = requests.get(url, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-
-        if "price" not in data:
-            raise ValueError(f"Resposta inválida da Binance: {data}")
-
-        return float(data["price"])
-
-    td_symbol = SUPPORTED_ASSETS[symbol]
-    url = f"{TWELVEDATA_API}/price?symbol={td_symbol}&apikey={TWELVEDATA_KEY}"
-    response = requests.get(url, timeout=15)
-    response.raise_for_status()
-    data = response.json()
-
-    if "price" not in data:
-        raise ValueError(f"Resposta inválida da TwelveData: {data}")
-
-    return float(data["price"])
-
-
-def get_candles(symbol: str, interval: str = "1min", outputsize: int = 30):
-    if symbol not in SUPPORTED_ASSETS:
-        raise ValueError(f"Ativo não suportado: {symbol}")
-
-    if symbol == "BTCUSD":
-        binance_interval_map = {
-            "1min": "1m",
-            "5min": "5m",
-            "15min": "15m",
-            "1h": "1h",
+@app.get("/price/{symbol}")
+def price(symbol: str):
+    try:
+        return {
+            "symbol": symbol,
+            "price": get_price(symbol),
         }
-        binance_interval = binance_interval_map.get(interval, "1m")
+    except Exception as e:
+        return {"error": str(e)}
 
-        url = (
-            f"{BINANCE_API}/klines?"
-            f"symbol=BTCUSDT&interval={binance_interval}&limit={outputsize}"
-        )
 
-        response = requests.get(url, timeout=15)
-        response.raise_for_status()
-        data = response.json()
+@app.get("/chart/{symbol}")
+def chart(symbol: str):
+    try:
+        return {
+            "symbol": symbol,
+            "candles": get_candles(symbol),
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
-        candles = []
-        for item in data:
-            candles.append(
-                {
-                    "datetime": item[0],
-                    "open": float(item[1]),
-                    "high": float(item[2]),
-                    "low": float(item[3]),
-                    "close": float(item[4]),
-                    "volume": float(item[5]),
-                }
-            )
 
-        return candles
-
-    td_symbol = SUPPORTED_ASSETS[symbol]
-    url = f"{TWELVEDATA_API}/time_series"
-    params = {
-        "symbol": td_symbol,
-        "interval": interval,
-        "outputsize": outputsize,
-        "apikey": TWELVEDATA_KEY,
-    }
-
-    response = requests.get(url, params=params, timeout=15)
-    response.raise_for_status()
-    data = response.json()
-
-    if "values" not in data:
-        raise ValueError(f"Resposta inválida da TwelveData: {data}")
-
-    candles = []
-    for item in reversed(data["values"]):
-        candles.append(
-            {
-                "datetime": item["datetime"],
-                "open": float(item["open"]),
-                "high": float(item["high"]),
-                "low": float(item["low"]),
-                "close": float(item["close"]),
-                "volume": float(item.get("volume", 0) or 0),
-            }
-        )
-
-    return candles
+@app.get("/signals")
+def signals():
+    try:
+        return scan_market()
+    except Exception as e:
+        return {"error": str(e)}
